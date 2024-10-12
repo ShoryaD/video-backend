@@ -288,8 +288,6 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Avatar file is missing")
     }
 
-    //TODO: delete old image - assignment
-
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
     if (!avatar.url) {
@@ -307,6 +305,17 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         {new: true}
     ).select("-password")
 
+    // After successfully updating the user's avatar, delete the old image
+    if (user.avatar) {
+        const publicId = user.avatar.split('/').pop().split('.')[0];
+        try {
+            await cloudinary.uploader.destroy(publicId);
+            console.log("Old avatar deleted successfully.");
+        } catch (err) {
+            console.error("Error deleting old avatar:", err);
+        }
+    }
+
     return res
     .status(200)
     .json(
@@ -320,9 +329,6 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     if (!coverImageLocalPath) {
         throw new ApiError(400, "Cover image file is missing")
     }
-
-    //TODO: delete old image - assignment
-
 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
@@ -340,6 +346,17 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
         },
         {new: true}
     ).select("-password")
+
+    // After successfully updating the user's cover image, delete the old image
+    if (user.coverImage) {
+        const publicId = user.coverImage.split('/').pop().split('.')[0];
+        try {
+            await cloudinary.uploader.destroy(publicId);
+            console.log("Old cover image deleted successfully.");
+        } catch (err) {
+            console.error("Error deleting old cover image:", err);
+        }
+    }
 
     return res
     .status(200)
